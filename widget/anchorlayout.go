@@ -19,6 +19,9 @@ type AnchorLayoutOpt func(a *AnchorLayout)
 type AnchorLayoutOptions struct {
 }
 
+type AnchorLayoutDataOptions struct {
+}
+
 // AnchorLayoutPosition is the type used to specify an anchoring position.
 type AnchorLayoutPosition int
 
@@ -38,6 +41,12 @@ type AnchorLayoutData struct {
 
 	// Sets the padding for the child.
 	Padding Insets
+
+	// MinSize returns the minimum size for the widget.
+	MinSize func() (int, int)
+
+	// MaxSize returns the maximum size for the widget.
+	MaxSize func() (int, int)
 }
 
 const (
@@ -54,6 +63,9 @@ const (
 // AnchorLayoutOpts contains functions that configure an AnchorLayout.
 var AnchorLayoutOpts AnchorLayoutOptions
 
+// AnchorLayoutDataOpts contains functions that configure an AnchorLayoutData.
+var AnchorLayoutDataOpts AnchorLayoutDataOptions
+
 // NewAnchorLayout constructs a new AnchorLayout, configured by opts.
 func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
 	a := &AnchorLayout{}
@@ -69,6 +81,20 @@ func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
 func (o AnchorLayoutOptions) Padding(i Insets) AnchorLayoutOpt {
 	return func(a *AnchorLayout) {
 		a.padding = i
+	}
+}
+
+// AnchorLayoutMinSize returns a function that sets the minimum size for the widget.
+func (o AnchorLayoutDataOptions) AnchorLayoutMinSize(width, height int) func() (int, int) {
+	return func() (int, int) {
+		return width, height
+	}
+}
+
+// AnchorLayoutMaxSize returns a function that sets the maximum size for the widget.
+func (o AnchorLayoutDataOptions) AnchorLayoutMaxSize(width, height int) func() (int, int) {
+	return func() (int, int) {
+		return width, height
 	}
 }
 
@@ -121,6 +147,28 @@ func (a *AnchorLayout) applyLayoutData(ld AnchorLayoutData, wx int, wy int, ww i
 
 	if ld.StretchVertical {
 		wh = rect.Dy()
+	}
+
+	// Apply minimum size constraints
+	if ld.MinSize != nil {
+		minWidth, minHeight := ld.MinSize()
+		if ww < minWidth {
+			ww = minWidth
+		}
+		if wh < minHeight {
+			wh = minHeight
+		}
+	}
+
+	// Apply maximum size constraints
+	if ld.MaxSize != nil {
+		maxWidth, maxHeight := ld.MaxSize()
+		if ww > maxWidth {
+			ww = maxWidth
+		}
+		if wh > maxHeight {
+			wh = maxHeight
+		}
 	}
 
 	hPos := ld.HorizontalPosition
