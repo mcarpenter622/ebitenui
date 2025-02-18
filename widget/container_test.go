@@ -72,6 +72,44 @@ func TestContainer_SetupInputLayer(t *testing.T) {
 	m.AssertExpectations(t)
 }
 
+func TestContainer_MinMaxWidthHeight(t *testing.T) {
+	is := is.New(t)
+	w := NewWidget()
+	is.Equal(w.MinWidth, 0)
+	is.Equal(w.MinHeight, 0)
+	is.Equal(w.MaxWidth, 0)
+	is.Equal(w.MaxHeight, 0)
+	m := controlMock{}
+	m.On("GetWidget").Maybe().Return(w)
+	m.On("PreferredSize").Maybe().Return(50, 50)
+	m.On("SetLocation", mock.Anything).Maybe()
+	m.On("Render", mock.Anything, mock.Anything)
+
+	c := newContainer(t,
+		ContainerOpts.WidgetOpts(
+			WidgetOpts.MinSize(100, 100),
+		))
+	c.AddChild(&m)
+
+	width, height := c.PreferredSize()
+	is.Equal(width, 100)
+	is.Equal(height, 100)
+
+	// setting max size should not affect preferred size
+	c = newContainer(t,
+		ContainerOpts.WidgetOpts(
+			WidgetOpts.MaxSize(200, 200),
+		))
+	c.AddChild(&m)
+
+	width, height = c.PreferredSize()
+	is.Equal(width, 0)
+	is.Equal(height, 0)
+
+	render(c, t)
+	m.AssertExpectations(t)
+}
+
 func (c *controlMock) GetWidget() *Widget {
 	args := c.Called()
 	if arg, ok := args.Get(0).(*Widget); ok {

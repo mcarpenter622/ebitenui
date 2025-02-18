@@ -216,12 +216,22 @@ func (c *Container) PreferredSize() (int, int) {
 		}
 	}
 
-	// If the set MinHeight or MinWidth are greater than calculated, use that
+	// If w & h are less than the Min values, use the Min values
 	if c.widget != nil && h < c.widget.MinHeight {
 		h = c.widget.MinHeight
 	}
 	if c.widget != nil && w < c.widget.MinWidth {
 		w = c.widget.MinWidth
+	}
+
+	// If w & h are greater than the Max values (and they are set), use the Max values
+	if c.widget != nil && (c.widget.MaxHeight != 0 || c.widget.MaxWidth != 0) {
+		if h > c.widget.MaxHeight {
+			h = c.widget.MaxHeight
+		}
+		if w > c.widget.MaxWidth {
+			w = c.widget.MaxWidth
+		}
 	}
 
 	return w, h

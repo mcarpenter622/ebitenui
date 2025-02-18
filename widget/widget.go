@@ -26,11 +26,13 @@ type Widget struct {
 	// GridLayoutData to be used.
 	LayoutData interface{}
 
-	// The minimum width for this Widget
+	// The minimum and maximum width for this Widget
 	MinWidth int
+	MaxWidth int
 
-	// The minimum height for this Widget
+	// The minimum and maximum height for this Widget
 	MinHeight int
+	MaxHeight int
 
 	// Disabled specifies whether the widget is disabled, whatever that means. Disabled widgets should
 	// usually render in some sort of "greyed out" visual state, and not react to user input.
@@ -409,6 +411,13 @@ func (o WidgetOptions) MinSize(minWidth int, minHeight int) WidgetOpt {
 	return func(w *Widget) {
 		w.MinWidth = minWidth
 		w.MinHeight = minHeight
+	}
+}
+
+func (o WidgetOptions) MaxSize(maxWidth int, maxHeight int) WidgetOpt {
+	return func(w *Widget) {
+		w.MaxWidth = maxWidth
+		w.MaxHeight = maxHeight
 	}
 }
 
