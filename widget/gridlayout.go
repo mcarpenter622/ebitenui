@@ -137,45 +137,38 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
 		cw := colWidths[c]
-		if w.GetWidget().Visibility == Visibility_Hide {
-			c++
-			continue
-		} else if w.GetWidget().Visibility == Visibility_Hide {
-			c++
-			x += cw + g.columnSpacing
-			continue
-		}
-
-		if g.columnStretched(c) {
-			cw = stretchedColWidth
-			if firstStretchedCol {
-				cw = firstStretchedColWidth
-				firstStretchedCol = false
-			}
-		}
-
 		ch := rowHeights[r]
-		if g.rowStretched(r) {
-			ch = stretchedRowHeight
-			if firstStretchedRow {
-				ch = firstStretchedRowHeight
-				firstStretchedRow = false
+		if w.GetWidget().Visibility != Visibility_Hide {
+			if g.columnStretched(c) {
+				cw = stretchedColWidth
+				if firstStretchedCol {
+					cw = firstStretchedColWidth
+					firstStretchedCol = false
+				}
 			}
+
+			if g.rowStretched(r) {
+				ch = stretchedRowHeight
+				if firstStretchedRow {
+					ch = firstStretchedRowHeight
+					firstStretchedRow = false
+				}
+			}
+
+			ww, wh := cw, ch
+			wx, wy := x, y
+
+			ld := w.GetWidget().LayoutData
+			if gld, ok := ld.(GridLayoutData); ok {
+				wx, wy, ww, wh = g.applyLayoutData(gld, wx, wy, ww, wh, x, y, cw, ch)
+			}
+
+			w.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
+
+			x += cw + g.columnSpacing
 		}
-
-		ww, wh := cw, ch
-		wx, wy := x, y
-
-		ld := w.GetWidget().LayoutData
-		if gld, ok := ld.(GridLayoutData); ok {
-			wx, wy, ww, wh = g.applyLayoutData(gld, wx, wy, ww, wh, x, y, cw, ch)
-		}
-
-		w.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
 
 		c++
-		x += cw + g.columnSpacing
-
 		if c >= g.columns {
 			c = 0
 			r++
